@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descriptografador de Senhas - jm.dev.br</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./tokens.css">
+    <style>
+        :root {
+            --color-brand: #0f62fe;
+            --color-text: #161616;
+            --color-bg: #ffffff;
+            --color-border: #e0e0e0;
+            --color-success: #24a148;
+            --color-error: #da1e28;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container-main {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--color-brand);
+            color: white;
+            padding: 24px;
+            border: none;
+        }
+
+        .card-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-header p {
+            font-size: 14px;
+            margin: 8px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .card-body {
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        .form-control {
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-brand);
+            box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.1);
+            outline: none;
+        }
+
+        textarea.form-control {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .input-info {
+            font-size: 12px;
+            color: #525252;
+            margin-top: 4px;
+        }
+
+        .btn-decrypt {
+            background: var(--color-brand);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .btn-decrypt:hover {
+            background: #0353e9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 98, 254, 0.3);
+        }
+
+        .btn-decrypt:active {
+            transform: translateY(0);
+        }
+
+        .btn-decrypt:disabled {
+            background: #c6c6c6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-box {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 4px;
+            display: none;
+            border-left: 4px solid var(--color-success);
+            background: #f1f1f1;
+        }
+
+        .result-box.success {
+            border-left-color: var(--color-success);
+            background: #f1f1f1;
+            display: block;
+        }
+
+        .result-box.error {
+            border-left-color: var(--color-error);
+            background: #fff1f1;
+            display: block;
+        }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #525252;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            color: var(--color-text);
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+        }
+
+        .error-message {
+            color: var(--color-error);
+        }
+
+        .copy-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: var(--color-brand);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #0353e9;
+        }
+
+        .copy-btn.copied {
+            background: var(--color-success);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .spinner-border {
+            width: 30px;
+            height: 30px;
+            color: var(--color-brand);
+        }
+
+        .info-banner {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .info-banner strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-main">
+        <div class="card">
+            <div class="card-header">
+                <h1>🔐 Descriptografador</h1>
+                <p>Descriptografa senhas criptografadas com MD5 + 3DES</p>
+            </div>
+
+            <div class="card-body">
+                <div class="info-banner">
+                    <strong>ℹ️ Como usar:</strong>
+                    Cole a senha criptografada (em formato hexadecimal ou Base64) e clique em "Descriptografar"
+                </div>
+
+                <form id="decryptForm">
+                    <div class="form-group">
+                        <label for="encryptedInput">Senha Criptografada:</label>
+                        <textarea 
+                            id="encryptedInput" 
+                            class="form-control" 
+                            placeholder="Cole aqui a senha criptografada&#10;Ex: 6C573263ED19C30753BC43FD4654CB5B9603"
+                            required
+                        ></textarea>
+                        <div class="input-info">Aceita hexadecimal ou Base64</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keyInput">Chave/Salt (MD5):</label>
+                        <input 
+                            type="text" 
+                            id="keyInput" 
+                            class="form-control" 
+                            placeholder="Cole a chave MD5 ou deixe em branco para padrão"
+                        >
+                        <div class="input-info">Se vazio, usará chave padrão do sistema</div>
+                    </div>
+
+                    <button type="submit" class="btn-decrypt">
+                        🔓 Descriptografar
+                    </button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Processando...</span>
+                    </div>
+                </div>
+
+                <div id="resultBox" class="result-box">
+                    <div class="result-label">Senha Descriptografada:</div>
+                    <div class="result-value" id="resultValue"></div>
+                    <button class="copy-btn" id="copyBtn">📋 Copiar</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
+            <p>jm.dev.br | Ferramenta de Criptografia</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = '/api';
+
+        document.getElementById('decryptForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const encryptedInput = document.getElementById('encryptedInput').value.trim();
+            const keyInput = document.getElementById('keyInput').value.trim();
+
+            if (!encryptedInput) {
+                showError('Por favor, insira a senha criptografada');
+                return;
+            }
+
+            await decrypt(encryptedInput, keyInput);
+        });
+
+        async function decrypt(encrypted, key) {
+            const loading = document.getElementById('loading');
+            const resultBox = document.getElementById('resultBox');
+            const resultValue = document.getElementById('resultValue');
+
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/decrypt`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        encrypted,
+                        key: key || undefined
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showSuccess(data.decrypted);
+                } else {
+                    showError(data.error || 'Erro ao descriptografar');
+                }
+            } catch (error) {
+                showError(`Erro: ${error.message}`);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function showSuccess(value) {
+            const resultBox = document.getElementById('resultBox');
+            const resultValue = document.getElementById('resultValue');
+
+            resultBox.classList.remove('error');
+            resultBox.classList.add('success');
+            resultValue.textContent = value;
+            resultBox.style.display = 'block';
+
+            document.getElementById('copyBtn').onclick = () => {
+                navigator.clipboard.writeText(value).then(() => {
+                    const btn = document.getElementById('copyBtn');
+                    btn.textContent = '✓ Copiado!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '📋 Copiar';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+            };
+        }
+
+        function showError(message) {
+            const resultBox = document.getElementById('resultBox');
+            const resultValue = document.getElementById('resultValue');
+
+            resultBox.classList.remove('success');
+            resultBox.classList.add('error');
+            resultValue.innerHTML = `<span class="error-message">${message}</span>`;
+            resultBox.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
