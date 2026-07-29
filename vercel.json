@@ -1,6 +1,5 @@
 {
-  "buildCommand": "",
-  "outputDirectory": "public",
+  "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
@@ -27,8 +26,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

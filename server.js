@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
@@ -9,6 +10,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Chave padrão (pode ser sobrescrita via variável de ambiente)
@@ -198,7 +200,11 @@ app.get('/api/health', (req, res) => {
  * Root
  */
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const publicIndexPath = path.join(__dirname, 'public', 'index.html');
+    const rootIndexPath = path.join(__dirname, 'index.html');
+    const indexPath = fs.existsSync(publicIndexPath) ? publicIndexPath : rootIndexPath;
+
+    res.sendFile(indexPath);
 });
 
 // Error handler
