@@ -69,33 +69,26 @@ function generateDesKey(keyMaterial) {
 }
 
 /**
- * Descriptografa usando 3DES
+ * Descriptografa usando 3DES-ECB
  */
 function decryptPassword(encryptedData, keyMaterial) {
-    try {
-        // Gerar chave
-        const key = generateDesKey(keyMaterial);
+    if (encryptedData.length === 0 || encryptedData.length % 8 !== 0) {
+        throw new Error(
+            `Tamanho de dado inválido para 3DES (${encryptedData.length} bytes após decodificação; ` +
+            'precisa ser múltiplo de 8). Confira se a chave e o valor colado estão completos.'
+        );
+    }
 
-        // 3DES com ECB (sem IV)
-        const decipher = crypto.createDecipher('des-ede3', keyMaterial);
-        
-        let decrypted = decipher.update(encryptedData, 'binary', 'utf8');
+    try {
+        const key = generateDesKey(keyMaterial);
+        const decipher = crypto.createDecipheriv('des-ede3-ecb', key, '');
+
+        let decrypted = decipher.update(encryptedData, undefined, 'utf8');
         decrypted += decipher.final('utf8');
 
         return decrypted;
     } catch (error) {
-        // Tentar alternativa: usar createDecipheriv com key derivada
-        try {
-            const key = generateDesKey(keyMaterial);
-            const decipher = crypto.createDecipheriv('des-ede3-ecb', key, '');
-            
-            let decrypted = decipher.update(encryptedData, 'binary', 'utf8');
-            decrypted += decipher.final('utf8');
-
-            return decrypted;
-        } catch (innerError) {
-            throw new Error(`Falha na descriptografia: ${error.message}`);
-        }
+        throw new Error(`Falha na descriptografia: ${error.message}`);
     }
 }
 
