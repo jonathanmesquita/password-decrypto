@@ -1,0 +1,77 @@
+const API_URL = '/api';
+
+const form = document.getElementById('decryptForm');
+const encryptedInput = document.getElementById('encryptedInput');
+const keyInput = document.getElementById('keyInput');
+const loading = document.getElementById('loading');
+const resultSection = document.getElementById('resultSection');
+const resultValue = document.getElementById('resultValue');
+const copyBtn = document.getElementById('copyBtn');
+const btnClear = document.getElementById('btnClear');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const encrypted = encryptedInput.value.trim();
+  const key = keyInput.value.trim();
+
+  if (!encrypted) {
+    showError('Por favor, insira a senha criptografada');
+    return;
+  }
+
+  await decrypt(encrypted, key);
+});
+
+btnClear.addEventListener('click', () => {
+  form.reset();
+  resultSection.classList.add('hidden');
+});
+
+async function decrypt(encrypted, key) {
+  loading.classList.add('active');
+  resultSection.classList.add('hidden');
+
+  try {
+    const response = await fetch(`${API_URL}/decrypt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ encrypted, key: key || undefined })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      showSuccess(data.decrypted);
+    } else {
+      showError(data.error || 'Erro ao descriptografar');
+    }
+  } catch (error) {
+    showError(`Erro: ${error.message}`);
+  } finally {
+    loading.classList.remove('active');
+  }
+}
+
+function showSuccess(value) {
+  resultValue.classList.remove('error-message');
+  resultValue.textContent = value;
+  resultSection.classList.remove('hidden');
+
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      copyBtn.innerHTML = '<i class="fa-solid fa-check me-2"></i>Copiado!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.innerHTML = '<i class="fa-solid fa-copy me-2"></i>Copiar';
+        copyBtn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+}
+
+function showError(message) {
+  resultValue.classList.add('error-message');
+  resultValue.textContent = message;
+  resultSection.classList.remove('hidden');
+}
